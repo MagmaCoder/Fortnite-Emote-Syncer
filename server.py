@@ -3,6 +3,13 @@ import socket
 from datetime import datetime
 import os
 import uuid
+import json
+
+def startPacket():
+    currentTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+    
+    initialPacket = {"type":"start","datetime":currentTime,"uuid":str(uuid.uuid4())}
+    return json.dumps(initialPacket).encode("utf-8")
 
 HOST = "localhost"
 PORT = 65432
@@ -15,12 +22,18 @@ def Client(clientsocket : socket.socket,addr):
     global clients
 
     msg = b""
-
+    print("Connection started.")
     clientsocket.setblocking(0)
+
+    #Send Initial Accept Packet
+    
+    clientsocket.send(startPacket())
+
 
     while allowConnections:
         if msg != b"":
-            pass
+            print(msg)
+            msg = b""
         try:
             #10035 is no data
             #10054 is closed connection
@@ -33,7 +46,7 @@ def Client(clientsocket : socket.socket,addr):
     
     clientsocket.close()
 
-def openSocket(host, port):
+def OpenSocket(host, port):
     conns = {}
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -50,8 +63,10 @@ def openSocket(host, port):
 if __name__ == "__main__":
     print(f"Server starting on {HOST} : {PORT}")
 
-    acceptingThread = threading.Thread(target=openSocket,args=(HOST, PORT))
+    acceptingThread = threading.Thread(target=OpenSocket,args=(HOST, PORT))
     acceptingThread.start()
+
+
 
 
 
